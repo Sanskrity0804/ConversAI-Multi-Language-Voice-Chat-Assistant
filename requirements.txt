@@ -1,0 +1,6 @@
+streamlit
+speechrecognition
+pyttsx3
+gTTS
+deep-translator
+google-generativeai
