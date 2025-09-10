@@ -1,6 +1,5 @@
 import streamlit as st
 import speech_recognition as sr
-import pyttsx3
 from gtts import gTTS
 import os
 import tempfile
@@ -11,9 +10,6 @@ import google.generativeai as genai
 # ---------------- Gemini Configuration ----------------
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-1.5-flash")
-
-# ---------------- TTS Engine ----------------
-engine = pyttsx3.init()
 
 # ---------------- Language Dictionary ----------------
 LANGUAGES = {
@@ -112,16 +108,14 @@ def speech_to_text():
         except sr.RequestError:
             return "⚠️ Speech recognition service error"
 
-def text_to_speech(text, lang_code):
+def speak_text(text, lang="en"):
     try:
-        tts = gTTS(text=text, lang=lang_code)
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
-            temp_file = fp.name
-            tts.save(temp_file)
-        st.audio(temp_file, format="audio/mp3")
-        os.remove(temp_file)
+        tts = gTTS(text=text, lang=lang)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+            tts.save(tmp_file.name)
+            st.audio(tmp_file.name, format="audio/mp3")
     except Exception as e:
-        st.error(f"gTTS Error: {e}")
+        st.error(f"Error in generating audio: {e}")
 
 def ask_gemini(prompt):
     response = model.generate_content(prompt)
@@ -166,7 +160,7 @@ if send_btn and user_q:
 
     # Voice answer
     if voice_enabled:
-        text_to_speech(final_response, LANGUAGES[answer_lang])
+        speak_text(final_response, LANGUAGES[answer_lang])
 
     # Clear input box
     st.session_state.current_q = ""
